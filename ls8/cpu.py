@@ -56,10 +56,9 @@ class CPU:
             sys.exit( 1 )
 
         address  = 0
-        filename = sys.argv[ 1 ]
 
         try:
-            with open( filename ) as f:
+            with open( sys.argv[ 1 ] ) as f:
                 for line in f:
                     line = line.split( '#' )
                     num  = line[ 0 ].strip()
