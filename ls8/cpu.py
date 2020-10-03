@@ -94,7 +94,7 @@ class CPU:
 
         elif op == DIV:
             self.reg[ reg_a ] /= self.reg[ reg_b ]
-            
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -119,11 +119,11 @@ class CPU:
         print()
 
 
-    def execute( self, instruction, op_a, op_b ):
-        if   instruction == HLT:
-            self.running = False
-
-        elif instruction == LDI:
+    def execute( self, instruction ):
+        op_a = self.ram_read( self.pc + 1 )
+        op_b = self.ram_read( self.pc + 2 )
+        
+        if instruction == LDI:
             self.reg[ op_a ] = op_b
             self.pc += 2
 
@@ -149,7 +149,7 @@ class CPU:
             # Instruction Register (IR)
             IR = self.ram_read( self.pc )
 
-            op_a = self.ram_read( self.pc + 1 )
-            op_b = self.ram_read( self.pc + 2 )
-
-            self.execute( IR, op_a, op_b )
+            if IR == HLT:
+                self.running = False
+            else:
+                self.execute( IR )
