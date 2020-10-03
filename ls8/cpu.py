@@ -63,7 +63,7 @@ class CPU:
                     line = line.split( '#' )
                     num  = line[ 0 ].strip()
 
-                    if num == '' or num == '\n':
+                    if num == '':
                         continue
                     else:
                         try:
