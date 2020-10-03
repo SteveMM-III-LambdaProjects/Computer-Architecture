@@ -3,6 +3,7 @@
 import sys
 
 
+# Instructions ------------------------------------------->
 LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
@@ -10,10 +11,13 @@ ADD = 0b10100000
 SUB = 0b10100001
 MUL = 0b10100010
 DIV = 0b10100011
+# ========================================================>
+
 
 class CPU:
     """Main CPU class."""
 
+    # Constructor ---------------------------------------->
     def __init__(self):
         """Construct a new CPU."""
         self.ram      = [ 0 ] * 256
@@ -22,24 +26,27 @@ class CPU:
         self.pc       = 0
         self.running  = True
 
-        self.brnchtbl = {}
-        self.brnchtbl[ LDI ] = self.hndl_ldi
-        self.brnchtbl[ PRN ] = self.hdnl_prn
-        self.brnchtbl[ ADD ] = self.hndl_alu
-        self.brnchtbl[ SUB ] = self.hndl_alu
-        self.brnchtbl[ MUL ] = self.hndl_alu
-        self.brnchtbl[ DIV ] = self.hndl_alu
+        # Branch Table
+        self.b_tbl = {}
+        self.b_tbl[ LDI ] = self.hndl_ldi
+        self.b_tbl[ PRN ] = self.hdnl_prn
+        self.b_tbl[ ADD ] = self.hndl_alu
+        self.b_tbl[ SUB ] = self.hndl_alu
+        self.b_tbl[ MUL ] = self.hndl_alu
+        self.b_tbl[ DIV ] = self.hndl_alu
+    # ====================================================>
 
 
+    # Memory Functions ----------------------------------->
     # Memory Address Register (MAR)
     # Memory Data    Register (MDR)
     def ram_read( self, MAR ):
         return self.ram[ MAR ]
-
+    # ===========>
 
     def ram_write( self, MAR, MDR ):
         self.ram[ MAR ] = MDR
-
+    # ===========>
 
     def load(self):
         """Load a program into memory."""
@@ -57,7 +64,7 @@ class CPU:
                     line = line.split( '#' )
                     num  = line[ 0 ].strip()
 
-                    if num == '':
+                    if num == '' or num == '\n':
                         continue
                     else:
                         try:
@@ -71,26 +78,10 @@ class CPU:
         except:
             print( 'File not found' )
             sys.exit( 1 )
-
-    """ 
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
- 
-        for instruction in program:
-            self.ram[ address ] = instruction
-            address += 1
-    """
+    # ====================================================>
 
 
+    # ALU ------------------------------------------------>
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
         if   op == ADD:
@@ -108,7 +99,7 @@ class CPU:
         else:
             raise Exception("Unsupported ALU operation")
 
-
+    # Traceback ------------------------------------------>
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -128,23 +119,27 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
+    # ====================================================>
 
 
+    # Instruction Handlers ------------------------------->
     def hndl_ldi( self, ins, a, b ):
         self.reg[ a ] = b
         self.pc += 3
-
+    # ===========>
 
     def hdnl_prn( self, ins, a, b ):
         print ( self.reg[ a ] )
         self.pc += 2
-    
+    # ===========>
 
     def hndl_alu( self, ins, a, b ):
         self.alu( ins, a, b )
         self.pc += 3
+    # ====================================================>
 
 
+    # Main Loop ------------------------------------------>
     def run(self):
         """Run the CPU."""
         
@@ -155,13 +150,13 @@ class CPU:
             if IR == HLT:
                 self.running = False
 
-            elif IR not in self.brnchtbl:
+            elif IR not in self.b_tbl:
                 print( f'Instruction Register Unknown: {IR} at program counter {self.pc}' )
                 self.running = False
             else:
                 op_a = self.ram_read( self.pc + 1 )
                 op_b = self.ram_read( self.pc + 2 )
                 
-                func = self.brnchtbl[ IR ]
+                func = self.b_tbl[ IR ]
                 func( IR, op_a, op_b )
-                    
+# EoF ---------------------------------------------------->
