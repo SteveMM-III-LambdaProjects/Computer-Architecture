@@ -125,17 +125,17 @@ class CPU:
     # Instruction Handlers ------------------------------->
     def hndl_ldi( self, ins, a, b ):
         self.reg[ a ] = b
-        self.pc += 3
+        self.pc += 3 # +1 base increment plus 1 for each used operand
     # ===========>
 
     def hdnl_prn( self, ins, a, b ):
         print ( self.reg[ a ] )
-        self.pc += 2
+        self.pc += 2 # +1 base increment plus 1 for each used operand
     # ===========>
 
     def hndl_alu( self, ins, a, b ):
         self.alu( ins, a, b )
-        self.pc += 3
+        self.pc += 3 # +1 base increment plus 1 for each used operand
     # ====================================================>
 
 
