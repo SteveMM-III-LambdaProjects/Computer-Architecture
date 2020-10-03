@@ -22,6 +22,25 @@ class CPU:
         self.pc       = 0
         self.running  = True
 
+        self.brnchtbl = {}
+        self.brnchtbl[ LDI ] = self.hndl_ldi
+        self.brnchtbl[ PRN ] = self.hdnl_prn
+        self.brnchtbl[ ADD ] = self.hndl_alu
+        self.brnchtbl[ SUB ] = self.hndl_alu
+        self.brnchtbl[ MUL ] = self.hndl_alu
+        self.brnchtbl[ DIV ] = self.hndl_alu
+
+
+    # Memory Address Register (MAR)
+    # Memory Data    Register (MDR)
+    def ram_read( self, MAR ):
+        return self.ram[ MAR ]
+
+
+    def ram_write( self, MAR, MDR ):
+        self.ram[ MAR ] = MDR
+
+
     def load(self):
         """Load a program into memory."""
 
@@ -42,7 +61,7 @@ class CPU:
                         continue
                     else:
                         try:
-                            self.ram[ address ] = int( num, 2 )
+                            self.ram_write( address, int( num, 2 ) )
                         except:
                             print( 'Could not convert string to integer' )
                     
@@ -71,15 +90,6 @@ class CPU:
             address += 1
     """
 
-    # Memory Address Register (MAR)
-    # Memory Data    Register (MDR)
-    def ram_read( self, MAR ):
-        return self.ram[ MAR ]
-
-
-    def ram_write( self, MAR, MDR ):
-        self.ram[ MAR ] = MDR
-
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -97,6 +107,7 @@ class CPU:
 
         else:
             raise Exception("Unsupported ALU operation")
+
 
     def trace(self):
         """
@@ -119,27 +130,19 @@ class CPU:
         print()
 
 
-    def execute( self, instruction ):
-        op_a = self.ram_read( self.pc + 1 )
-        op_b = self.ram_read( self.pc + 2 )
-        
-        if instruction == LDI:
-            self.reg[ op_a ] = op_b
-            self.pc += 2
+    def hndl_ldi( self, ins, a, b ):
+        self.reg[ a ] = b
+        self.pc += 3
 
-        elif instruction == PRN:
-            print( self.reg[ op_a ] )
-            self.pc += 1
 
-        elif instruction in [ ADD, SUB, MUL, DIV ]:
-            self.alu( instruction, op_a, op_b )
-            self.pc += 2
+    def hdnl_prn( self, ins, a, b ):
+        print ( self.reg[ a ] )
+        self.pc += 2
+    
 
-        else:
-            print( f'Instruction Register Unknown: {instruction} at program counter {self.pc}' )
-            self.running = False
-
-        self.pc += 1
+    def hndl_alu( self, ins, a, b ):
+        self.alu( ins, a, b )
+        self.pc += 3
 
 
     def run(self):
@@ -151,5 +154,14 @@ class CPU:
 
             if IR == HLT:
                 self.running = False
+
+            elif IR not in self.brnchtbl:
+                print( f'Instruction Register Unknown: {IR} at program counter {self.pc}' )
+                self.running = False
             else:
-                self.execute( IR )
+                op_a = self.ram_read( self.pc + 1 )
+                op_b = self.ram_read( self.pc + 2 )
+                
+                func = self.brnchtbl[ IR ]
+                func( IR, op_a, op_b )
+                    
