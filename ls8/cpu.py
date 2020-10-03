@@ -134,7 +134,7 @@ class CPU:
     # ====================================================>
 
 
-    # Instruction Handlers ------------------------------->
+    # Instruction Handlers & Helpers --------------------->
     def hndl_ldi( self, a, b ):
         self.reg[ a ] = b
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
@@ -149,30 +149,39 @@ class CPU:
 
     def hndl_add( self, a, b):
         self.reg[ a ] += self.reg[ b ]
+        self.limiter( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ===========>
 
 
     def hndl_sub( self, a, b):
         self.reg[ a ] -= self.reg[ b ]
+        self.limiter( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ===========>
 
 
     def hndl_mul( self, a, b):
         self.reg[ a ] *= self.reg[ b ]
+        self.limiter( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ===========>
 
 
     def hndl_div( self, a, b):
         self.reg[ a ] /= self.reg[ b ]
+        self.limiter( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ===========>
 
 
     def inc_pc( self, num ):
         self.pc += num
+    # ===========>
+
+
+    def limiter( self, a ):
+        self.reg[ a ] &= 0xFF
     # ====================================================>
 
 
