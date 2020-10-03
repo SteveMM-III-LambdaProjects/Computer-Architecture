@@ -26,14 +26,21 @@ class CPU:
         self.pc       = 0
         self.running  = True
 
+        # ALU
+        self.alu = {}
+        self.alu[ ADD ] = self.hndl_add
+        self.alu[ SUB ] = self.hndl_sub
+        self.alu[ MUL ] = self.hndl_mul
+        self.alu[ DIV ] = self.hndl_div
+
         # Branch Table
         self.b_tbl = {}
         self.b_tbl[ LDI ] = self.hndl_ldi
         self.b_tbl[ PRN ] = self.hdnl_prn
-        self.b_tbl[ ADD ] = self.hndl_alu
-        self.b_tbl[ SUB ] = self.hndl_alu
-        self.b_tbl[ MUL ] = self.hndl_alu
-        self.b_tbl[ DIV ] = self.hndl_alu
+        self.b_tbl[ ADD ] = self.alu[ ADD ]
+        self.b_tbl[ SUB ] = self.alu[ SUB ]
+        self.b_tbl[ MUL ] = self.alu[ MUL ]
+        self.b_tbl[ DIV ] = self.alu[ DIV ]
     # ====================================================>
 
 
@@ -44,9 +51,11 @@ class CPU:
         return self.ram[ MAR ]
     # ===========>
 
+
     def ram_write( self, MAR, MDR ):
         self.ram[ MAR ] = MDR
     # ===========>
+
 
     def load(self):
         """Load a program into memory."""
@@ -79,24 +88,28 @@ class CPU:
             sys.exit( 1 )
     # ====================================================>
 
-
+    """ 
     # ALU ------------------------------------------------>
-    def alu(self, op, reg_a, reg_b):
-        """ALU operations."""
-        if   op == ADD:
+    def alu(self, ins, reg_a, reg_b):
+        """'''ALU operations.'''"""
+
+        if   ins == ADD:
             self.reg[ reg_a ] += self.reg[ reg_b ]
 
-        elif op == SUB:
+        elif ins == SUB:
             self.reg[ reg_a ] -= self.reg[ reg_b ]
 
-        elif op == MUL:
+        elif ins == MUL:
             self.reg[ reg_a ] *= self.reg[ reg_b ]
 
-        elif op == DIV:
+        elif ins == DIV:
             self.reg[ reg_a ] /= self.reg[ reg_b ]
 
         else:
             raise Exception("Unsupported ALU operation")
+
+        self.pc += 3 # +1 base increment plus 1 for each used operand
+    """
 
     # Traceback ------------------------------------------>
     def trace(self):
@@ -122,19 +135,44 @@ class CPU:
 
 
     # Instruction Handlers ------------------------------->
-    def hndl_ldi( self, ins, a, b ):
+    def hndl_ldi( self, a, b ):
         self.reg[ a ] = b
-        self.pc += 3 # +1 base increment plus 1 for each used operand
+        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ===========>
 
-    def hdnl_prn( self, ins, a, b ):
+
+    def hdnl_prn( self, a, b ):
         print ( self.reg[ a ] )
-        self.pc += 2 # +1 base increment plus 1 for each used operand
+        self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
     # ===========>
 
-    def hndl_alu( self, ins, a, b ):
-        self.alu( ins, a, b )
-        self.pc += 3 # +1 base increment plus 1 for each used operand
+
+    def hndl_add( self, a, b):
+        self.reg[ a ] += self.reg[ b ]
+        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_sub( self, a, b):
+        self.reg[ a ] -= self.reg[ b ]
+        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_mul( self, a, b):
+        self.reg[ a ] *= self.reg[ b ]
+        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_div( self, a, b):
+        self.reg[ a ] /= self.reg[ b ]
+        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def inc_pc( self, num ):
+        self.pc += num
     # ====================================================>
 
 
@@ -157,5 +195,5 @@ class CPU:
                 op_b = self.ram_read( self.pc + 2 )
                 
                 func = self.b_tbl[ IR ]
-                func( IR, op_a, op_b )
+                func( op_a, op_b )
 # EoF ---------------------------------------------------->
