@@ -4,13 +4,15 @@ import sys
 
 
 # Instructions ------------------------------------------->
-LDI = 0b10000010
-PRN = 0b01000111
-HLT = 0b00000001
-ADD = 0b10100000
-SUB = 0b10100001
-MUL = 0b10100010
-DIV = 0b10100011
+LDI  = 0b10000010
+PRN  = 0b01000111
+HLT  = 0b00000001
+ADD  = 0b10100000
+SUB  = 0b10100001
+MUL  = 0b10100010
+DIV  = 0b10100011
+POP  = 0b01000110
+PUSH = 0b01000101
 # ========================================================>
 
 
@@ -25,6 +27,9 @@ class CPU:
         self.reg[ 7 ] = 0xF4
         self.pc       = 0
         self.running  = True
+        self.sp       = 6
+
+        self.reg[ self.sp ] = len( self.ram ) - 1
 
         # ALU
         self.alu = {}
@@ -35,12 +40,14 @@ class CPU:
 
         # Branch Table
         self.b_tbl = {}
-        self.b_tbl[ LDI ] = self.hndl_ldi
-        self.b_tbl[ PRN ] = self.hdnl_prn
-        self.b_tbl[ ADD ] = self.alu[ ADD ]
-        self.b_tbl[ SUB ] = self.alu[ SUB ]
-        self.b_tbl[ MUL ] = self.alu[ MUL ]
-        self.b_tbl[ DIV ] = self.alu[ DIV ]
+        self.b_tbl[ LDI  ] = self.hndl_ldi
+        self.b_tbl[ PRN  ] = self.hndl_prn
+        self.b_tbl[ POP  ] = self.hndl_pop
+        self.b_tbl[ PUSH ] = self.hndl_push
+        self.b_tbl[ ADD  ] = self.alu[ ADD ]
+        self.b_tbl[ SUB  ] = self.alu[ SUB ]
+        self.b_tbl[ MUL  ] = self.alu[ MUL ]
+        self.b_tbl[ DIV  ] = self.alu[ DIV ]
     # ====================================================>
 
 
@@ -141,8 +148,22 @@ class CPU:
     # ===========>
 
 
-    def hdnl_prn( self, a, b ):
+    def hndl_prn( self, a, b ):
         print ( self.reg[ a ] )
+        self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_pop( self, a, b ):
+        self.reg[ a ] = self.ram[ self.reg[ self.sp ] ]
+        self.reg[ self.sp ] += 1
+        self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_push( self, a, b ):
+        self.reg[ self.sp ] -= 1
+        self.ram[ self.reg[ self.sp ] ] = self.reg[ a ]
         self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
     # ===========>
 
