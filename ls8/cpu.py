@@ -13,6 +13,8 @@ MUL  = 0b10100010
 DIV  = 0b10100011
 POP  = 0b01000110
 PUSH = 0b01000101
+CALL = 0b01010000
+RET  = 0b00010001
 # ========================================================>
 
 
@@ -28,8 +30,10 @@ class CPU:
         self.pc       = 0
         self.running  = True
         self.sp       = 6
+        self.fl       = 5
 
         self.reg[ self.sp ] = len( self.ram ) - 1
+        self.reg[ self.fl ] = 0b00000000
 
         # ALU
         self.alu = {}
@@ -44,6 +48,8 @@ class CPU:
         self.b_tbl[ PRN  ] = self.hndl_prn
         self.b_tbl[ POP  ] = self.hndl_pop
         self.b_tbl[ PUSH ] = self.hndl_push
+        self.b_tbl[ CALL ] = self.hndl_call
+        self.b_tbl[ RET  ] = self.hndl_ret
         self.b_tbl[ ADD  ] = self.alu[ ADD ]
         self.b_tbl[ SUB  ] = self.alu[ SUB ]
         self.b_tbl[ MUL  ] = self.alu[ MUL ]
@@ -116,6 +122,7 @@ class CPU:
             raise Exception("Unsupported ALU operation")
 
         self.pc += 3 # +1 base increment plus 1 for each used operand
+    # ====================================================>
     """
 
     # Traceback ------------------------------------------>
@@ -165,6 +172,19 @@ class CPU:
         self.reg[ self.sp ] -= 1
         self.ram[ self.reg[ self.sp ] ] = self.reg[ a ]
         self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_call( self, a, b ):
+        self.reg[ self.sp ] -= 1
+        self.ram[ self.reg[ self.sp ] ] = self.pc + 2
+        self.pc = self.reg[ a ]
+    # ===========>
+
+
+    def hndl_ret( self, a, b ):
+        self.pc = self.ram[ self.reg[ self.sp ] ]
+        self.reg[ self.sp ] += 1
     # ===========>
 
 
