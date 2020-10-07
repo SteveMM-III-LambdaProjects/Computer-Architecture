@@ -45,11 +45,10 @@ class CPU:
         self.reg[ 7 ] = 0xF4
         self.pc       = 0
         self.running  = True
-        self.sp       = 6
-        self.fl       = 5
+        self.sp       = 7
+        self.fl       = FLB
 
         self.reg[ self.sp ] = len( self.ram ) - 1
-        self.reg[ self.fl ] = FLB # base flags state zero; no flags set
 
         # ALU
         self.alu = {}
@@ -354,6 +353,11 @@ class CPU:
 
     def base_and( self, a, b=0xFF ):
         self.reg[ a ] &= b
+    # ===========>
+
+
+    def set_flag( self, flag ):
+        self.fl = flag
     # ====================================================>
 
 
