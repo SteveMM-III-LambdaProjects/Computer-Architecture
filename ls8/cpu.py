@@ -162,29 +162,29 @@ class CPU:
 
 
     def hndl_pop( self, a, b ):
-        self.reg[ a ] = self.ram[ self.reg[ self.sp ] ]
-        self.reg[ self.sp ] += 1
+        self.reg[ a ] = self.ram_read( self.reg[ self.sp ] )
+        self.inc_sp()
         self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
     # ===========>
 
 
     def hndl_push( self, a, b ):
-        self.reg[ self.sp ] -= 1
-        self.ram[ self.reg[ self.sp ] ] = self.reg[ a ]
+        self.dec_sp()
+        self.ram_write( self.reg[ self.sp ], self.reg[ a ] )
         self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
     # ===========>
 
 
     def hndl_call( self, a, b ):
-        self.reg[ self.sp ] -= 1
-        self.ram[ self.reg[ self.sp ] ] = self.pc + 2
+        self.dec_sp()
+        self.ram_write( self.reg[ self.sp ], self.pc + 2 )
         self.pc = self.reg[ a ]
     # ===========>
 
 
     def hndl_ret( self, a, b ):
-        self.pc = self.ram[ self.reg[ self.sp ] ]
-        self.reg[ self.sp ] += 1
+        self.pc = self.ram_read( self.reg[ self.sp ] )
+        self.inc_sp()
     # ===========>
 
 
@@ -218,6 +218,17 @@ class CPU:
 
     def inc_pc( self, num ):
         self.pc += num
+    # ===========>
+
+
+    def inc_sp( self ):
+        self.reg[ self.sp ] += 1
+        self.limiter( self.sp )
+    # ===========>
+
+
+    def dec_sp( self ):
+        self.reg[ self.sp ] -= 1
     # ===========>
 
 
