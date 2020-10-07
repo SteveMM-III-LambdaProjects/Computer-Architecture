@@ -97,12 +97,12 @@ class CPU:
     # Memory Data    Register (MDR)
     def ram_read( self, MAR ):
         return self.ram[ MAR ]
-    # ===========>
+    # ============>
 
 
     def ram_write( self, MAR, MDR ):
         self.ram[ MAR ] = MDR
-    # ===========>
+    # ============>
 
 
     def load(self):
@@ -189,40 +189,40 @@ class CPU:
     def hndl_ldi( self, a, b ):
         self.reg[ a ] = b
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_prn( self, a, b ):
         print ( self.reg[ a ] )
         self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_pop( self, a, b ):
         self.reg[ a ] = self.ram_read( self.reg[ self.sp ] )
         self.inc_sp()
         self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_push( self, a, b ):
         self.dec_sp()
         self.ram_write( self.reg[ self.sp ], self.reg[ a ] )
         self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_call( self, a, b ):
         self.dec_sp()
         self.ram_write( self.reg[ self.sp ], self.pc + 2 )
         self.pc = self.reg[ a ]
-    # ===========>
+    # ============>
 
 
     def hndl_ret( self, a, b ):
         self.pc = self.ram_read( self.reg[ self.sp ] )
         self.inc_sp()
-    # ===========>
+    # ============>
 
 
     # ALU Instructions Handlers -------------------------->
@@ -230,13 +230,13 @@ class CPU:
         self.reg[ a ] += self.reg[ b ]
         self.base_and( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_and( self, a, b ):
         self.base_and( a, self.reg[ b ] )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_cmp( self, a, b ):
@@ -244,116 +244,116 @@ class CPU:
         second = self.reg[ b ]
 
         if first == second:
-            # set equal flag
-            self.reg[ self.fl ] = FLE
+            self.set_flag( FLE )
+
         elif first > second:
-            # set greater flag
-            self.reg[ self.fl ] = FLG
+            self.set_flag( FLG )
+
         elif first < second:
-            #set less flag
-            self.reg[ self.fl ] = FLL
+            self.set_flag( FLL )
+
         else:
-            self.reg[ self.fl ] = FLB
-    # ===========>
+            self.set_flag( FLB )
+    # ============>
 
 
     def hndl_dec( self, a, b ):
         self.reg[ a ] -= 1
         self.base_and( a )
         self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_div( self, a, b ):
         self.reg[ a ] /= self.reg[ b ]
         self.base_and( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_inc( self, a, b ):
         self.reg[ a ] += 1
         self.base_and( a )
         self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_mod( self, a, b ):
         self.reg[ a ] %= self.reg[ b ]
         self.base_and( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_mul( self, a, b ):
         self.reg[ a ] *= self.reg[ b ]
         self.base_and( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_not( self, a, b ):
         self.reg[ a ] = ~self.reg[ a ]
         self.base_and( a )
         self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_or( self, a, b ):
         self.reg[ a ] |= self.reg[ b ]
         self.base_and( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_shl( self, a, b ):
         self.reg[ a ] <<= self.reg[ b ]
         self.base_and( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_shr( self, a, b ):
         self.reg[ a ] >>= self.reg[ b ]
         self.base_and( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_sub( self, a, b ):
         self.reg[ a ] -= self.reg[ b ]
         self.base_and( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     def hndl_xor( self, a, b ):
         self.reg[ a ] ^= self.reg[ b ]
         self.base_and( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
-    # ===========>
+    # ============>
 
 
     # Instruction Helpers -------------------------------->
     def inc_pc( self, num ):
         self.pc += num
-    # ===========>
+    # ============>
 
 
     def inc_sp( self ):
         self.reg[ self.sp ] += 1
         self.base_and( self.sp )
-    # ===========>
+    # ============>
 
 
     def dec_sp( self ):
         self.reg[ self.sp ] -= 1
-    # ===========>
+    # ============>
 
 
     def base_and( self, a, b=0xFF ):
         self.reg[ a ] &= b
-    # ===========>
+    # ============>
 
 
     def set_flag( self, flag ):
