@@ -137,6 +137,7 @@ class CPU:
             sys.exit( 1 )
     # ====================================================>
 
+
     """ 
     # ALU ------------------------------------------------>
     def alu(self, ins, reg_a, reg_b):
@@ -160,6 +161,7 @@ class CPU:
         self.pc += 3 # +1 base increment plus 1 for each used operand
     # ====================================================>
     """
+
 
     # Traceback ------------------------------------------>
     def trace(self):
@@ -222,6 +224,7 @@ class CPU:
         self.pc = self.ram_read( self.reg[ self.sp ] )
         self.inc_sp()
     # ===========>
+
 
     # ALU Instructions Handlers -------------------------->
     def hndl_add( self, a, b ):
@@ -331,6 +334,7 @@ class CPU:
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ===========>
 
+
     # Instruction Helpers -------------------------------->
     def inc_pc( self, num ):
         self.pc += num
@@ -346,6 +350,7 @@ class CPU:
     def dec_sp( self ):
         self.reg[ self.sp ] -= 1
     # ===========>
+
 
     def base_and( self, a, b=0xFF ):
         self.reg[ a ] &= b
