@@ -4,17 +4,33 @@ import sys
 
 
 # Instructions ------------------------------------------->
-LDI  = 0b10000010
-PRN  = 0b01000111
-HLT  = 0b00000001
-ADD  = 0b10100000
-SUB  = 0b10100001
-MUL  = 0b10100010
-DIV  = 0b10100011
-POP  = 0b01000110
-PUSH = 0b01000101
 CALL = 0b01010000
+HLT  = 0b00000001
+LDI  = 0b10000010
+POP  = 0b01000110
+PRN  = 0b01000111
+PUSH = 0b01000101
 RET  = 0b00010001
+# ALU Instructions ---->
+ADD  = 0b10100000
+AND  = 0b10101000
+CMP  = 0b10100111
+DEC  = 0b01100110
+DIV  = 0b10100011
+INC  = 0b01100101
+MOD  = 0b10100100
+MUL  = 0b10100010
+NOT  = 0b01101001
+OR   = 0b10101010
+SHL  = 0b10101100
+SHR  = 0b10101101
+SUB  = 0b10100001
+XOR  = 0b10101011
+# Flags --------------->
+FLB  = 0b00000000
+FLE  = 0b00000001
+FLG  = 0b00000010
+FLL  = 0b00000100
 # ========================================================>
 
 
@@ -33,14 +49,24 @@ class CPU:
         self.fl       = 5
 
         self.reg[ self.sp ] = len( self.ram ) - 1
-        self.reg[ self.fl ] = 0b00000000
+        self.reg[ self.fl ] = FLB # base flags state zero; no flags set
 
         # ALU
         self.alu = {}
         self.alu[ ADD ] = self.hndl_add
-        self.alu[ SUB ] = self.hndl_sub
-        self.alu[ MUL ] = self.hndl_mul
+        self.alu[ AND ] = self.hndl_and
+        self.alu[ CMP ] = self.hndl_cmp
+        self.alu[ DEC ] = self.hndl_dec
         self.alu[ DIV ] = self.hndl_div
+        self.alu[ INC ] = self.hndl_inc
+        self.alu[ MOD ] = self.hndl_mod
+        self.alu[ MUL ] = self.hndl_mul
+        self.alu[ NOT ] = self.hndl_not
+        self.alu[ OR  ] = self.hndl_or
+        self.alu[ SHL ] = self.hndl_shl
+        self.alu[ SHR ] = self.hndl_shr
+        self.alu[ SUB ] = self.hndl_sub
+        self.alu[ XOR ] = self.hndl_xor
 
         # Branch Table
         self.b_tbl = {}
@@ -51,9 +77,19 @@ class CPU:
         self.b_tbl[ CALL ] = self.hndl_call
         self.b_tbl[ RET  ] = self.hndl_ret
         self.b_tbl[ ADD  ] = self.alu[ ADD ]
-        self.b_tbl[ SUB  ] = self.alu[ SUB ]
-        self.b_tbl[ MUL  ] = self.alu[ MUL ]
+        self.b_tbl[ AND  ] = self.alu[ AND ]
+        self.b_tbl[ CMP  ] = self.alu[ CMP ]
+        self.b_tbl[ DEC  ] = self.alu[ DEC ]
         self.b_tbl[ DIV  ] = self.alu[ DIV ]
+        self.b_tbl[ INC  ] = self.alu[ INC ]
+        self.b_tbl[ MOD  ] = self.alu[ MOD ]
+        self.b_tbl[ MUL  ] = self.alu[ MUL ]
+        self.b_tbl[ NOT  ] = self.alu[ NOT ]
+        self.b_tbl[ OR   ] = self.alu[ OR  ]
+        self.b_tbl[ SHL  ] = self.alu[ SHL ]
+        self.b_tbl[ SHR  ] = self.alu[ SHR ]
+        self.b_tbl[ SUB  ] = self.alu[ SUB ]
+        self.b_tbl[ XOR  ] = self.alu[ XOR ]
     # ====================================================>
 
 
@@ -148,7 +184,7 @@ class CPU:
     # ====================================================>
 
 
-    # Instruction Handlers & Helpers --------------------->
+    # Instruction Handlers ------------------------------->
     def hndl_ldi( self, a, b ):
         self.reg[ a ] = b
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
@@ -187,35 +223,115 @@ class CPU:
         self.inc_sp()
     # ===========>
 
-
-    def hndl_add( self, a, b):
+    # ALU Instructions Handlers -------------------------->
+    def hndl_add( self, a, b ):
         self.reg[ a ] += self.reg[ b ]
-        self.limiter( a )
+        self.base_and( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ===========>
 
 
-    def hndl_sub( self, a, b):
-        self.reg[ a ] -= self.reg[ b ]
-        self.limiter( a )
+    def hndl_and( self, a, b ):
+        self.base_and( a, self.reg[ b ] )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ===========>
 
 
-    def hndl_mul( self, a, b):
-        self.reg[ a ] *= self.reg[ b ]
-        self.limiter( a )
-        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    def hndl_cmp( self, a, b ):
+        first  = self.reg[ a ]
+        second = self.reg[ b ]
+
+        if first == second:
+            # set equal flag
+            self.reg[ self.fl ] = FLE
+        elif first > second:
+            # set greater flag
+            self.reg[ self.fl ] = FLG
+        elif first < second:
+            #set less flag
+            self.reg[ self.fl ] = FLL
+        else:
+            self.reg[ self.fl ] = FLB
     # ===========>
 
 
-    def hndl_div( self, a, b):
+    def hndl_dec( self, a, b ):
+        self.reg[ a ] -= 1
+        self.base_and( a )
+        self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_div( self, a, b ):
         self.reg[ a ] /= self.reg[ b ]
-        self.limiter( a )
+        self.base_and( a )
         self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ===========>
 
 
+    def hndl_inc( self, a, b ):
+        self.reg[ a ] += 1
+        self.base_and( a )
+        self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_mod( self, a, b ):
+        self.reg[ a ] %= self.reg[ b ]
+        self.base_and( a )
+        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_mul( self, a, b ):
+        self.reg[ a ] *= self.reg[ b ]
+        self.base_and( a )
+        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_not( self, a, b ):
+        self.reg[ a ] = ~self.reg[ a ]
+        self.base_and( a )
+        self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_or( self, a, b ):
+        self.reg[ a ] |= self.reg[ b ]
+        self.base_and( a )
+        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_shl( self, a, b ):
+        self.reg[ a ] <<= self.reg[ b ]
+        self.base_and( a )
+        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_shr( self, a, b ):
+        self.reg[ a ] >>= self.reg[ b ]
+        self.base_and( a )
+        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_sub( self, a, b ):
+        self.reg[ a ] -= self.reg[ b ]
+        self.base_and( a )
+        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+
+    def hndl_xor( self, a, b ):
+        self.reg[ a ] ^= self.reg[ b ]
+        self.base_and( a )
+        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    # ===========>
+
+    # Instruction Helpers -------------------------------->
     def inc_pc( self, num ):
         self.pc += num
     # ===========>
@@ -223,7 +339,7 @@ class CPU:
 
     def inc_sp( self ):
         self.reg[ self.sp ] += 1
-        self.limiter( self.sp )
+        self.base_and( self.sp )
     # ===========>
 
 
@@ -231,9 +347,8 @@ class CPU:
         self.reg[ self.sp ] -= 1
     # ===========>
 
-
-    def limiter( self, a ):
-        self.reg[ a ] &= 0xFF
+    def base_and( self, a, b=0xFF ):
+        self.reg[ a ] &= b
     # ====================================================>
 
 
