@@ -105,7 +105,7 @@ class CPU:
     # ============>
 
 
-    def load(self):
+    def load( self ):
         """Load a program into memory."""
 
         if len( sys.argv ) != 2:
@@ -137,49 +137,24 @@ class CPU:
     # ====================================================>
 
 
-    """ 
-    # ALU ------------------------------------------------>
-    def alu(self, ins, reg_a, reg_b):
-        """'''ALU operations.'''"""
-
-        if   ins == ADD:
-            self.reg[ reg_a ] += self.reg[ reg_b ]
-
-        elif ins == SUB:
-            self.reg[ reg_a ] -= self.reg[ reg_b ]
-
-        elif ins == MUL:
-            self.reg[ reg_a ] *= self.reg[ reg_b ]
-
-        elif ins == DIV:
-            self.reg[ reg_a ] /= self.reg[ reg_b ]
-
-        else:
-            raise Exception("Unsupported ALU operation")
-
-        self.pc += 3 # +1 base increment plus 1 for each used operand
-    # ====================================================>
-    """
-
-
     # Traceback ------------------------------------------>
-    def trace(self):
+    def trace( self ):
         """
         Handy function to print out the CPU state. You might want to call this
         from run() if you need help debugging.
         """
 
-        print(f"TRACE: %02X | %02X %02X %02X |" % (
+        print( f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
+            self.fl,
             #self.ie,
-            self.ram_read(self.pc),
-            self.ram_read(self.pc + 1),
-            self.ram_read(self.pc + 2)
-        ), end='')
+            self.ram_read( self.pc     ),
+            self.ram_read( self.pc + 1 ),
+            self.ram_read( self.pc + 2 )
+        ), end = '' )
 
-        for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+        for i in range( 8 ):
+            print( " %02X" % self.reg[ i ], end = '' )
 
         print()
     # ====================================================>
