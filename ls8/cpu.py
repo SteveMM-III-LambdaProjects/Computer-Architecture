@@ -44,13 +44,12 @@ class CPU:
         """Construct a new CPU."""
         self.ram      = [ 0 ] * 256
         self.reg      = [ 0 ] * 8
-        self.reg[ 7 ] = 0xF4
         self.pc       = 0
         self.running  = True
         self.sp       = 7
         self.fl       = FLB
 
-        self.reg[ self.sp ] = len( self.ram ) - 1
+        self.reg[ self.sp ] = 0xF4
 
         # ALU
         self.alu = {}
