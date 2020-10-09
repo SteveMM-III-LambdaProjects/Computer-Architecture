@@ -68,6 +68,7 @@ class CPU:
         self.__intrpts_enbld = True      # Interrupt Bool
 
         self.__reg[ self.__sp   ] = 0xF4 # Empty Stack
+        
         # Interrupt Mask; I0 & I1 only
         self.__reg[ self.__imsk ] = [ 0b00000011 ]
         
@@ -122,6 +123,7 @@ class CPU:
 
 
     # Memory Functions ----------------------------------->
+    # region
     # Memory Address Register (MAR)
     # Memory Data    Register (MDR)
     def __ram_read( self, MAR ):
@@ -163,6 +165,20 @@ class CPU:
         except:
             print( 'File not found' )
             sys.exit( 1 )
+    # ============>
+
+
+    def __push( self, a ):
+        self.__dec_sp()
+        self.__ram_write( self.__reg[ self.__sp ], a )
+    # ============>
+
+
+    def __pop( self ):
+        val = self.__ram_read( self.__reg[ self.__sp ] )
+        self.__inc_sp()
+        return val
+    # endregion
     # ====================================================>
 
 
@@ -190,6 +206,7 @@ class CPU:
 
 
     # Instruction Handlers ------------------------------->
+    # region
     def __hndl_ldi( self, a, b ):
         self.__reg[ a ] = b
         self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
@@ -260,9 +277,11 @@ class CPU:
     def __hndl_jmp( self, a, b ):
         self.__pc = self.__reg[ a ]
     # ============>
+    # endregion
 
 
     # ALU Instructions Handlers -------------------------->
+    # region
     def __hndl_add( self, a, b ):
         self.__reg[ a ] += self.__reg[ b ]
         self.__and( a )
@@ -369,9 +388,11 @@ class CPU:
         self.__and( a )
         self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ============>
+    # endregion
 
 
     # Instruction Helpers -------------------------------->
+    # region
     def __inc_pc( self, num ):
         self.__pc += num
     # ============>
@@ -385,19 +406,6 @@ class CPU:
 
     def __dec_sp( self ):
         self.__reg[ self.__sp ] -= 1
-    # ============>
-
-
-    def __push( self, a ):
-        self.__dec_sp()
-        self.__ram_write( self.__reg[ self.__sp ], a )
-    # ============>
-
-
-    def __pop( self ):
-        val = self.__ram_read( self.__reg[ self.__sp ] )
-        self.__inc_sp()
-        return val
     # ============>
 
 
@@ -433,6 +441,7 @@ class CPU:
                 self.__push( self.__reg[ i ] )
             
             self.__pc = pc
+    # endregion
     # ====================================================>
 
 
