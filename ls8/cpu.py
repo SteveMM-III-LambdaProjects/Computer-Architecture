@@ -4,7 +4,7 @@ import sys
 from time import time
 
 # Instructions & Flags ----------------------------------->
-# region
+# region   <-- vscode collapse region tag
 CALL = 0b01010000
 HLT  = 0b00000001
 LDI  = 0b10000010
@@ -67,7 +67,8 @@ class CPU:
 
         self.__intrpts_enbld = True      # Interrupt Bool
 
-        self.__reg[ self.__sp   ] = 0xF4   # Empty Stack
+        self.__reg[ self.__sp   ] = 0xF4 # Empty Stack
+        # Interrupt Mask; I0 & I1 only
         self.__reg[ self.__imsk ] = [ 0b00000011 ]
         
         # Interrupt Vector Table
