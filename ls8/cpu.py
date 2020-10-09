@@ -1,7 +1,7 @@
 """CPU functionality."""
 
 import sys
-
+from time import time
 
 # Instructions & Flags ----------------------------------->
 # region
@@ -12,6 +12,9 @@ POP  = 0b01000110
 PRN  = 0b01000111
 PUSH = 0b01000101
 RET  = 0b00010001
+ST   = 0b10000100
+PRA  = 0b01001000
+JMP  = 0b01010100
 # ALU Instructions ---->
 ADD  = 0b10100000
 AND  = 0b10101000
@@ -32,6 +35,17 @@ FLB  = 0b00000000
 FLE  = 0b00000001
 FLG  = 0b00000010
 FLL  = 0b00000100
+# Interrupts ---------->
+INT  = 0b01010010
+IRET = 0b00010011
+I0   = 0b00000001
+I1   = 0b00000010
+I2   = 0b00000100
+I3   = 0b00001000
+I4   = 0b00010000
+I5   = 0b00100000
+I6   = 0b01000000
+I7   = 0b10000000
 # endregion
 # ========================================================>
 
@@ -42,14 +56,22 @@ class CPU:
     # Constructor ---------------------------------------->
     def __init__(self):
         """Construct a new CPU."""
-        self.ram      = [ 0 ] * 256
-        self.reg      = [ 0 ] * 8
-        self.pc       = 0
-        self.running  = True
-        self.sp       = 7
-        self.fl       = FLB
+        self.ram     = [ 0 ] * 256     # RAM
+        self.reg     = [ 0 ] * 8       # Registers
+        self.pc      = 0               # Program Counter
+        self.running = True            # Main Loop Var
+        self.sp      = 7               # Stack Pointer
+        self.fl      = FLB             # Flag
+        self.imsk    = 5               # Interrupt Mask
+        self.istat   = 6               # Interrupt Status
 
-        self.reg[ self.sp ] = 0xF4
+        self.intrpts_enbld = True      # Interrupt Bool
+
+        self.reg[ self.sp ]   = 0xF4   # Empty Stack
+        self.reg[ self.imsk ] = [ 0b00000011 ]
+        
+        # Interrupt Vector Table
+        self.ivt = [ 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF ]
 
         # ALU
         self.alu = {}
@@ -72,10 +94,15 @@ class CPU:
         self.b_tbl = {}
         self.b_tbl[ LDI  ] = self.hndl_ldi
         self.b_tbl[ PRN  ] = self.hndl_prn
-        self.b_tbl[ POP  ] = self.hndl_pop
         self.b_tbl[ PUSH ] = self.hndl_push
+        self.b_tbl[ POP  ] = self.hndl_pop
         self.b_tbl[ CALL ] = self.hndl_call
         self.b_tbl[ RET  ] = self.hndl_ret
+        self.b_tbl[ INT  ] = self.hndl_intrpt
+        self.b_tbl[ IRET ] = self.hndl_iret
+        self.b_tbl[ ST   ] = self.hndl_st
+        self.b_tbl[ PRA  ] = self.hndl_pra
+        self.b_tbl[ JMP  ] = self.hndl_jmp
         self.b_tbl[ ADD  ] = self.alu[ ADD ]
         self.b_tbl[ AND  ] = self.alu[ AND ]
         self.b_tbl[ CMP  ] = self.alu[ CMP ]
@@ -174,16 +201,14 @@ class CPU:
     # ============>
 
 
-    def hndl_pop( self, a, b ):
-        self.reg[ a ] = self.ram_read( self.reg[ self.sp ] )
-        self.inc_sp()
+    def hndl_push( self, a, b ):
+        self.base_push( self.reg[ a ] )
         self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_push( self, a, b ):
-        self.dec_sp()
-        self.ram_write( self.reg[ self.sp ], self.reg[ a ] )
+    def hndl_pop( self, a, b ):
+        self.reg[ a ] = self.base_pop()
         self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
     # ============>
 
@@ -200,6 +225,39 @@ class CPU:
         self.inc_sp()
     # ============>
 
+
+    def hndl_intrpt( self, a, b ):
+        val = self.reg[ a ] & self.reg[ self.imsk ]
+        if val in [ I0, I1 ]:
+            self.reg[ self.istat ] |= val
+    # ============>
+
+
+    def hndl_iret( self, a, b ):
+        for i in range( 6, -1, -1 ):
+            self.reg[ i ] = self.base_pop()
+
+        self.fl = self.base_pop()
+        self.pc = self.base_pop()
+
+        self.intrpts_enbld = True
+    # ============>
+
+    def hndl_st( self, a, b ):
+        self.ram_write( self.reg[ a ], self.reg[ b ] )
+        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    # ============>
+
+
+    def hndl_pra( self, a, b ):
+        print( chr( self.reg[ a ] ) )
+        self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    # ============>
+
+
+    def hndl_jmp( self, a, b ):
+        self.pc = self.reg[ a ]
+    # ============>
 
     # ALU Instructions Handlers -------------------------->
     def hndl_add( self, a, b ):
@@ -326,6 +384,18 @@ class CPU:
         self.reg[ self.sp ] -= 1
     # ============>
 
+    def base_push( self, a ):
+        self.dec_sp()
+        self.ram_write( self.reg[ self.sp ], a )
+    # ============>
+
+
+    def base_pop( self ):
+        val = self.ram_read( self.reg[ self.sp ] )
+        self.inc_sp()
+        return val
+    # ============>
+
 
     def base_and( self, a, b=0xFF ):
         self.reg[ a ] &= b
@@ -334,6 +404,31 @@ class CPU:
 
     def set_flag( self, flag ):
         self.fl = flag
+    # ============>
+
+
+    def process_intrpt( self ):
+        self.intrpts_enbld = False
+        
+        pc = None
+        status = self.reg[ self.istat ]
+
+        if status & I0:
+            self.reg[ self.istat ] -= I0
+            pc = self.ram_read( self.ivt[ 0 ] )
+
+        elif status & I1:
+            self.reg[ self.istat ] -= I1
+            pc = self.ram_read( self.ivt[ 1 ] )
+        
+        if pc is not None:
+            self.base_push( self.pc )
+            self.base_push( self.fl )
+
+            for i in range( 0, 7 ):
+                self.base_push( self.reg[ i ] )
+            
+            self.pc = pc
     # ====================================================>
 
 
@@ -341,7 +436,13 @@ class CPU:
     def run(self):
         """Run the CPU."""
         
+        start_time = time()
+
         while self.running:
+            if self.intrpts_enbld:
+                if self.reg[ self.istat ] != 0:
+                    self.process_intrpt()
+
             # Instruction Register (IR)
             IR = self.ram_read( self.pc )
 
@@ -357,4 +458,10 @@ class CPU:
                 
                 func = self.b_tbl[ IR ]
                 func( op_a, op_b )
+            
+            time_check = time()
+
+            if time_check - start_time >= 1:
+                self.reg[ self.istat ] += I0
+                start_time = time()
 # EoF ---------------------------------------------------->
