@@ -56,80 +56,80 @@ class CPU:
     # Constructor ---------------------------------------->
     def __init__(self):
         """Construct a new CPU."""
-        self.ram     = [ 0 ] * 256     # RAM
-        self.reg     = [ 0 ] * 8       # Registers
-        self.pc      = 0               # Program Counter
-        self.running = True            # Main Loop Var
-        self.sp      = 7               # Stack Pointer
-        self.fl      = FLB             # Flag
-        self.imsk    = 5               # Interrupt Mask
-        self.istat   = 6               # Interrupt Status
+        self.__ram     = [ 0 ] * 256     # RAM
+        self.__reg     = [ 0 ] * 8       # Registers
+        self.__pc      = 0               # Program Counter
+        self.__running = True            # Main Loop Var
+        self.__sp      = 7               # Stack Pointer
+        self.__fl      = FLB             # Flag
+        self.__imsk    = 5               # Interrupt Mask
+        self.__istat   = 6               # Interrupt Status
 
-        self.intrpts_enbld = True      # Interrupt Bool
+        self.__intrpts_enbld = True      # Interrupt Bool
 
-        self.reg[ self.sp ]   = 0xF4   # Empty Stack
-        self.reg[ self.imsk ] = [ 0b00000011 ]
+        self.__reg[ self.__sp   ] = 0xF4   # Empty Stack
+        self.__reg[ self.__imsk ] = [ 0b00000011 ]
         
         # Interrupt Vector Table
-        self.ivt = [ 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF ]
+        self.__ivt = [ 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF ]
 
         # ALU
-        self.alu = {}
-        self.alu[ ADD ] = self.hndl_add
-        self.alu[ AND ] = self.hndl_and
-        self.alu[ CMP ] = self.hndl_cmp
-        self.alu[ DEC ] = self.hndl_dec
-        self.alu[ DIV ] = self.hndl_div
-        self.alu[ INC ] = self.hndl_inc
-        self.alu[ MOD ] = self.hndl_mod
-        self.alu[ MUL ] = self.hndl_mul
-        self.alu[ NOT ] = self.hndl_not
-        self.alu[ OR  ] = self.hndl_or
-        self.alu[ SHL ] = self.hndl_shl
-        self.alu[ SHR ] = self.hndl_shr
-        self.alu[ SUB ] = self.hndl_sub
-        self.alu[ XOR ] = self.hndl_xor
+        self.__alu = {}
+        self.__alu[ ADD ] = self.__hndl_add
+        self.__alu[ AND ] = self.__hndl_and
+        self.__alu[ CMP ] = self.__hndl_cmp
+        self.__alu[ DEC ] = self.__hndl_dec
+        self.__alu[ DIV ] = self.__hndl_div
+        self.__alu[ INC ] = self.__hndl_inc
+        self.__alu[ MOD ] = self.__hndl_mod
+        self.__alu[ MUL ] = self.__hndl_mul
+        self.__alu[ NOT ] = self.__hndl_not
+        self.__alu[ OR  ] = self.__hndl_or
+        self.__alu[ SHL ] = self.__hndl_shl
+        self.__alu[ SHR ] = self.__hndl_shr
+        self.__alu[ SUB ] = self.__hndl_sub
+        self.__alu[ XOR ] = self.__hndl_xor
 
         # Branch Table
-        self.b_tbl = {}
-        self.b_tbl[ LDI  ] = self.hndl_ldi
-        self.b_tbl[ PRN  ] = self.hndl_prn
-        self.b_tbl[ PUSH ] = self.hndl_push
-        self.b_tbl[ POP  ] = self.hndl_pop
-        self.b_tbl[ CALL ] = self.hndl_call
-        self.b_tbl[ RET  ] = self.hndl_ret
-        self.b_tbl[ INT  ] = self.hndl_intrpt
-        self.b_tbl[ IRET ] = self.hndl_iret
-        self.b_tbl[ ST   ] = self.hndl_st
-        self.b_tbl[ PRA  ] = self.hndl_pra
-        self.b_tbl[ JMP  ] = self.hndl_jmp
-        self.b_tbl[ ADD  ] = self.alu[ ADD ]
-        self.b_tbl[ AND  ] = self.alu[ AND ]
-        self.b_tbl[ CMP  ] = self.alu[ CMP ]
-        self.b_tbl[ DEC  ] = self.alu[ DEC ]
-        self.b_tbl[ DIV  ] = self.alu[ DIV ]
-        self.b_tbl[ INC  ] = self.alu[ INC ]
-        self.b_tbl[ MOD  ] = self.alu[ MOD ]
-        self.b_tbl[ MUL  ] = self.alu[ MUL ]
-        self.b_tbl[ NOT  ] = self.alu[ NOT ]
-        self.b_tbl[ OR   ] = self.alu[ OR  ]
-        self.b_tbl[ SHL  ] = self.alu[ SHL ]
-        self.b_tbl[ SHR  ] = self.alu[ SHR ]
-        self.b_tbl[ SUB  ] = self.alu[ SUB ]
-        self.b_tbl[ XOR  ] = self.alu[ XOR ]
+        self.__b_tbl = {}
+        self.__b_tbl[ LDI  ] = self.__hndl_ldi
+        self.__b_tbl[ PRN  ] = self.__hndl_prn
+        self.__b_tbl[ PUSH ] = self.__hndl_push
+        self.__b_tbl[ POP  ] = self.__hndl_pop
+        self.__b_tbl[ CALL ] = self.__hndl_call
+        self.__b_tbl[ RET  ] = self.__hndl_ret
+        self.__b_tbl[ INT  ] = self.__hndl_intrpt
+        self.__b_tbl[ IRET ] = self.__hndl_iret
+        self.__b_tbl[ ST   ] = self.__hndl_st
+        self.__b_tbl[ PRA  ] = self.__hndl_pra
+        self.__b_tbl[ JMP  ] = self.__hndl_jmp
+        self.__b_tbl[ ADD  ] = self.__alu[ ADD ]
+        self.__b_tbl[ AND  ] = self.__alu[ AND ]
+        self.__b_tbl[ CMP  ] = self.__alu[ CMP ]
+        self.__b_tbl[ DEC  ] = self.__alu[ DEC ]
+        self.__b_tbl[ DIV  ] = self.__alu[ DIV ]
+        self.__b_tbl[ INC  ] = self.__alu[ INC ]
+        self.__b_tbl[ MOD  ] = self.__alu[ MOD ]
+        self.__b_tbl[ MUL  ] = self.__alu[ MUL ]
+        self.__b_tbl[ NOT  ] = self.__alu[ NOT ]
+        self.__b_tbl[ OR   ] = self.__alu[ OR  ]
+        self.__b_tbl[ SHL  ] = self.__alu[ SHL ]
+        self.__b_tbl[ SHR  ] = self.__alu[ SHR ]
+        self.__b_tbl[ SUB  ] = self.__alu[ SUB ]
+        self.__b_tbl[ XOR  ] = self.__alu[ XOR ]
     # ====================================================>
 
 
     # Memory Functions ----------------------------------->
     # Memory Address Register (MAR)
     # Memory Data    Register (MDR)
-    def ram_read( self, MAR ):
-        return self.ram[ MAR ]
+    def __ram_read( self, MAR ):
+        return self.__ram[ MAR ]
     # ============>
 
 
-    def ram_write( self, MAR, MDR ):
-        self.ram[ MAR ] = MDR
+    def __ram_write( self, MAR, MDR ):
+        self.__ram[ MAR ] = MDR
     # ============>
 
 
@@ -152,7 +152,7 @@ class CPU:
                         continue
                     else:
                         try:
-                            self.ram_write( address, int( num, 2 ) )
+                            self.__ram_write( address, int( num, 2 ) )
                         except:
                             print( 'Could not convert string to integer' )
                     
@@ -166,269 +166,269 @@ class CPU:
 
 
     # Traceback ------------------------------------------>
-    def trace( self ):
+    def __trace( self ):
         """
         Handy function to print out the CPU state. You might want to call this
         from run() if you need help debugging.
         """
 
         print( f"TRACE: %02X | %02X %02X %02X |" % (
-            self.pc,
-            self.fl,
+            self.__pc,
+            self.__fl,
             #self.ie,
-            self.ram_read( self.pc     ),
-            self.ram_read( self.pc + 1 ),
-            self.ram_read( self.pc + 2 )
+            self.__ram_read( self.__pc     ),
+            self.__ram_read( self.__pc + 1 ),
+            self.__ram_read( self.__pc + 2 )
         ), end = '' )
 
         for i in range( 8 ):
-            print( " %02X" % self.reg[ i ], end = '' )
+            print( " %02X" % self.__reg[ i ], end = '' )
 
         print()
     # ====================================================>
 
 
     # Instruction Handlers ------------------------------->
-    def hndl_ldi( self, a, b ):
-        self.reg[ a ] = b
-        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    def __hndl_ldi( self, a, b ):
+        self.__reg[ a ] = b
+        self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_prn( self, a, b ):
-        print ( self.reg[ a ] )
-        self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    def __hndl_prn( self, a, b ):
+        print ( self.__reg[ a ] )
+        self.__inc_pc( 2 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_push( self, a, b ):
-        self.base_push( self.reg[ a ] )
-        self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    def __hndl_push( self, a, b ):
+        self.__push( self.__reg[ a ] )
+        self.__inc_pc( 2 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_pop( self, a, b ):
-        self.reg[ a ] = self.base_pop()
-        self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    def __hndl_pop( self, a, b ):
+        self.__reg[ a ] = self.__pop()
+        self.__inc_pc( 2 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_call( self, a, b ):
-        self.dec_sp()
-        self.ram_write( self.reg[ self.sp ], self.pc + 2 )
-        self.pc = self.reg[ a ]
+    def __hndl_call( self, a, b ):
+        self.__dec_sp()
+        self.__ram_write( self.__reg[ self.__sp ], self.__pc + 2 )
+        self.__pc = self.__reg[ a ]
     # ============>
 
 
-    def hndl_ret( self, a, b ):
-        self.pc = self.ram_read( self.reg[ self.sp ] )
-        self.inc_sp()
+    def __hndl_ret( self, a, b ):
+        self.__pc = self.__ram_read( self.__reg[ self.__sp ] )
+        self.__inc_sp()
     # ============>
 
 
-    def hndl_intrpt( self, a, b ):
-        val = self.reg[ a ] & self.reg[ self.imsk ]
+    def __hndl_intrpt( self, a, b ):
+        val = self.__reg[ a ] & self.__reg[ self.__imsk ]
         if val in [ I0, I1 ]:
-            self.reg[ self.istat ] |= val
+            self.__reg[ self.__istat ] |= val
     # ============>
 
 
-    def hndl_iret( self, a, b ):
+    def __hndl_iret( self, a, b ):
         for i in range( 6, -1, -1 ):
-            self.reg[ i ] = self.base_pop()
+            self.__reg[ i ] = self.__pop()
 
-        self.fl = self.base_pop()
-        self.pc = self.base_pop()
+        self.__fl = self.__pop()
+        self.__pc = self.__pop()
 
-        self.intrpts_enbld = True
+        self.__intrpts_enbld = True
     # ============>
 
-    def hndl_st( self, a, b ):
-        self.ram_write( self.reg[ a ], self.reg[ b ] )
-        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
-    # ============>
-
-
-    def hndl_pra( self, a, b ):
-        print( chr( self.reg[ a ] ) )
-        self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    def __hndl_st( self, a, b ):
+        self.__ram_write( self.__reg[ a ], self.__reg[ b ] )
+        self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_jmp( self, a, b ):
-        self.pc = self.reg[ a ]
+    def __hndl_pra( self, a, b ):
+        print( chr( self.__reg[ a ] ) )
+        self.__inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    # ============>
+
+
+    def __hndl_jmp( self, a, b ):
+        self.__pc = self.__reg[ a ]
     # ============>
 
     # ALU Instructions Handlers -------------------------->
-    def hndl_add( self, a, b ):
-        self.reg[ a ] += self.reg[ b ]
-        self.base_and( a )
-        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    def __hndl_add( self, a, b ):
+        self.__reg[ a ] += self.__reg[ b ]
+        self.__and( a )
+        self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_and( self, a, b ):
-        self.base_and( a, self.reg[ b ] )
-        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    def __hndl_and( self, a, b ):
+        self.__and( a, self.__reg[ b ] )
+        self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_cmp( self, a, b ):
-        first  = self.reg[ a ]
-        second = self.reg[ b ]
+    def __hndl_cmp( self, a, b ):
+        first  = self.__reg[ a ]
+        second = self.__reg[ b ]
 
         if first == second:
-            self.set_flag( FLE )
+            self.__set_flag( FLE )
 
         elif first > second:
-            self.set_flag( FLG )
+            self.__set_flag( FLG )
 
         elif first < second:
-            self.set_flag( FLL )
+            self.__set_flag( FLL )
 
         else:
-            self.set_flag( FLB )
+            self.__set_flag( FLB )
     # ============>
 
 
-    def hndl_dec( self, a, b ):
-        self.reg[ a ] -= 1
-        self.base_and( a )
-        self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    def __hndl_dec( self, a, b ):
+        self.__reg[ a ] -= 1
+        self.__and( a )
+        self.__inc_pc( 2 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_div( self, a, b ):
-        self.reg[ a ] /= self.reg[ b ]
-        self.base_and( a )
-        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    def __hndl_div( self, a, b ):
+        self.__reg[ a ] /= self.__reg[ b ]
+        self.__and( a )
+        self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_inc( self, a, b ):
-        self.reg[ a ] += 1
-        self.base_and( a )
-        self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    def __hndl_inc( self, a, b ):
+        self.__reg[ a ] += 1
+        self.__and( a )
+        self.__inc_pc( 2 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_mod( self, a, b ):
-        self.reg[ a ] %= self.reg[ b ]
-        self.base_and( a )
-        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    def __hndl_mod( self, a, b ):
+        self.__reg[ a ] %= self.__reg[ b ]
+        self.__and( a )
+        self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_mul( self, a, b ):
-        self.reg[ a ] *= self.reg[ b ]
-        self.base_and( a )
-        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    def __hndl_mul( self, a, b ):
+        self.__reg[ a ] *= self.__reg[ b ]
+        self.__and( a )
+        self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_not( self, a, b ):
-        self.reg[ a ] = ~self.reg[ a ]
-        self.base_and( a )
-        self.inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    def __hndl_not( self, a, b ):
+        self.__reg[ a ] = ~self.__reg[ a ]
+        self.__and( a )
+        self.__inc_pc( 2 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_or( self, a, b ):
-        self.reg[ a ] |= self.reg[ b ]
-        self.base_and( a )
-        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    def __hndl_or( self, a, b ):
+        self.__reg[ a ] |= self.__reg[ b ]
+        self.__and( a )
+        self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_shl( self, a, b ):
-        self.reg[ a ] <<= self.reg[ b ]
-        self.base_and( a )
-        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    def __hndl_shl( self, a, b ):
+        self.__reg[ a ] <<= self.__reg[ b ]
+        self.__and( a )
+        self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_shr( self, a, b ):
-        self.reg[ a ] >>= self.reg[ b ]
-        self.base_and( a )
-        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    def __hndl_shr( self, a, b ):
+        self.__reg[ a ] >>= self.__reg[ b ]
+        self.__and( a )
+        self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_sub( self, a, b ):
-        self.reg[ a ] -= self.reg[ b ]
-        self.base_and( a )
-        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    def __hndl_sub( self, a, b ):
+        self.__reg[ a ] -= self.__reg[ b ]
+        self.__and( a )
+        self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
-    def hndl_xor( self, a, b ):
-        self.reg[ a ] ^= self.reg[ b ]
-        self.base_and( a )
-        self.inc_pc( 3 ) # +1 base increment plus 1 for each used operand
+    def __hndl_xor( self, a, b ):
+        self.__reg[ a ] ^= self.__reg[ b ]
+        self.__and( a )
+        self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
     # Instruction Helpers -------------------------------->
-    def inc_pc( self, num ):
-        self.pc += num
+    def __inc_pc( self, num ):
+        self.__pc += num
     # ============>
 
 
-    def inc_sp( self ):
-        self.reg[ self.sp ] += 1
-        self.base_and( self.sp )
+    def __inc_sp( self ):
+        self.__reg[ self.__sp ] += 1
+        self.__and( self.__sp )
     # ============>
 
 
-    def dec_sp( self ):
-        self.reg[ self.sp ] -= 1
+    def __dec_sp( self ):
+        self.__reg[ self.__sp ] -= 1
     # ============>
 
-    def base_push( self, a ):
-        self.dec_sp()
-        self.ram_write( self.reg[ self.sp ], a )
+    def __push( self, a ):
+        self.__dec_sp()
+        self.__ram_write( self.__reg[ self.__sp ], a )
     # ============>
 
 
-    def base_pop( self ):
-        val = self.ram_read( self.reg[ self.sp ] )
-        self.inc_sp()
+    def __pop( self ):
+        val = self.__ram_read( self.__reg[ self.__sp ] )
+        self.__inc_sp()
         return val
     # ============>
 
 
-    def base_and( self, a, b=0xFF ):
-        self.reg[ a ] &= b
+    def __and( self, a, b=0xFF ):
+        self.__reg[ a ] &= b
     # ============>
 
 
-    def set_flag( self, flag ):
-        self.fl = flag
+    def __set_flag( self, flag ):
+        self.__fl = flag
     # ============>
 
 
-    def process_intrpt( self ):
-        self.intrpts_enbld = False
+    def __process_intrpt( self ):
+        self.__intrpts_enbld = False
         
         pc = None
-        status = self.reg[ self.istat ]
+        status = self.__reg[ self.__istat ]
 
         if status & I0:
-            self.reg[ self.istat ] -= I0
-            pc = self.ram_read( self.ivt[ 0 ] )
+            self.__reg[ self.__istat ] -= I0
+            pc = self.__ram_read( self.__ivt[ 0 ] )
 
         elif status & I1:
-            self.reg[ self.istat ] -= I1
-            pc = self.ram_read( self.ivt[ 1 ] )
+            self.__reg[ self.__istat ] -= I1
+            pc = self.__ram_read( self.__ivt[ 1 ] )
         
         if pc is not None:
-            self.base_push( self.pc )
-            self.base_push( self.fl )
+            self.__push( self.__pc )
+            self.__push( self.__fl )
 
             for i in range( 0, 7 ):
-                self.base_push( self.reg[ i ] )
+                self.__push( self.__reg[ i ] )
             
-            self.pc = pc
+            self.__pc = pc
     # ====================================================>
 
 
@@ -438,30 +438,30 @@ class CPU:
         
         start_time = time()
 
-        while self.running:
-            if self.intrpts_enbld:
-                if self.reg[ self.istat ] != 0:
-                    self.process_intrpt()
+        while self.__running:
+            if self.__intrpts_enbld:
+                if self.__reg[ self.__istat ] != 0:
+                    self.__process_intrpt()
 
             # Instruction Register (IR)
-            IR = self.ram_read( self.pc )
+            IR = self.__ram_read( self.__pc )
 
             if IR == HLT:
-                self.running = False
+                self.__running = False
 
-            elif IR not in self.b_tbl:
-                print( f'Instruction Register Unknown: {IR} at program counter {self.pc}' )
-                self.running = False
+            elif IR not in self.__b_tbl:
+                print( f'Instruction Register Unknown: {IR} at program counter {self.__pc}' )
+                self.__running = False
             else:
-                op_a = self.ram_read( self.pc + 1 )
-                op_b = self.ram_read( self.pc + 2 )
+                op_a = self.__ram_read( self.__pc + 1 )
+                op_b = self.__ram_read( self.__pc + 2 )
                 
-                func = self.b_tbl[ IR ]
+                func = self.__b_tbl[ IR ]
                 func( op_a, op_b )
             
             time_check = time()
 
             if time_check - start_time >= 1:
-                self.reg[ self.istat ] += I0
+                self.__reg[ self.__istat ] += I0
                 start_time = time()
 # EoF ---------------------------------------------------->
