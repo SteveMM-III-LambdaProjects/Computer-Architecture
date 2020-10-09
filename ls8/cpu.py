@@ -243,6 +243,7 @@ class CPU:
         self.__intrpts_enbld = True
     # ============>
 
+
     def __hndl_st( self, a, b ):
         self.__ram_write( self.__reg[ a ], self.__reg[ b ] )
         self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
@@ -258,6 +259,7 @@ class CPU:
     def __hndl_jmp( self, a, b ):
         self.__pc = self.__reg[ a ]
     # ============>
+
 
     # ALU Instructions Handlers -------------------------->
     def __hndl_add( self, a, b ):
@@ -384,6 +386,7 @@ class CPU:
         self.__reg[ self.__sp ] -= 1
     # ============>
 
+
     def __push( self, a ):
         self.__dec_sp()
         self.__ram_write( self.__reg[ self.__sp ], a )
@@ -452,6 +455,7 @@ class CPU:
             elif IR not in self.__b_tbl:
                 print( f'Instruction Register Unknown: {IR} at program counter {self.__pc}' )
                 self.__running = False
+                
             else:
                 op_a = self.__ram_read( self.__pc + 1 )
                 op_b = self.__ram_read( self.__pc + 2 )
