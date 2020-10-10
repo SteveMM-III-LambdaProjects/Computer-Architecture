@@ -12,9 +12,14 @@ POP  = 0b01000110
 PRN  = 0b01000111
 PUSH = 0b01000101
 RET  = 0b00010001
+LD   = 0b10000011
 ST   = 0b10000100
 PRA  = 0b01001000
+PRL  = 0b01110011
 JMP  = 0b01010100
+JEQ  = 0b01010101
+JNE  = 0b01010110
+JLT  = 0b01011000
 # ALU Instructions ---->
 ADD  = 0b10100000
 AND  = 0b10101000
@@ -68,7 +73,7 @@ class CPU:
         self.__intrpts_enbld = True      # Interrupt Bool
 
         self.__reg[ self.__sp   ] = 0xF4 # Empty Stack
-        
+
         # Interrupt Mask; I0 & I1 only
         self.__reg[ self.__imsk ] = [ 0b00000011 ]
         
@@ -102,9 +107,14 @@ class CPU:
         self.__b_tbl[ RET  ] = self.__hndl_ret
         self.__b_tbl[ INT  ] = self.__hndl_intrpt
         self.__b_tbl[ IRET ] = self.__hndl_iret
+        self.__b_tbl[ LD   ] = self.__hndl_ld
         self.__b_tbl[ ST   ] = self.__hndl_st
         self.__b_tbl[ PRA  ] = self.__hndl_pra
+        self.__b_tbl[ PRL  ] = self.__hndl_prl
         self.__b_tbl[ JMP  ] = self.__hndl_jmp
+        self.__b_tbl[ JEQ  ] = self.__hndl_jeq
+        self.__b_tbl[ JNE  ] = self.__hndl_jne
+        self.__b_tbl[ JLT  ] = self.__hndl_jlt
         self.__b_tbl[ ADD  ] = self.__alu[ ADD ]
         self.__b_tbl[ AND  ] = self.__alu[ AND ]
         self.__b_tbl[ CMP  ] = self.__alu[ CMP ]
@@ -262,6 +272,12 @@ class CPU:
     # ============>
 
 
+    def __hndl_ld( self, a, b ):
+        self.__reg[ a ] = self.__ram_read( self.reg[ b ] )
+        self.__inc_sp( 3 ) # +1 base increment plus 1 for each used operand
+    # ============>
+
+
     def __hndl_st( self, a, b ):
         self.__ram_write( self.__reg[ a ], self.__reg[ b ] )
         self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
@@ -274,9 +290,49 @@ class CPU:
     # ============>
 
 
+    def __hndl_prl( self, a, b ):
+        for i in range(0, self.__reg[ a ] ):
+            print( '*', end="" )
+        print( '' )
+        self.__inc_pc( 2 ) # +1 base increment plus 1 for each used operand
+    # ============>
+
+
     def __hndl_jmp( self, a, b ):
         self.__pc = self.__reg[ a ]
     # ============>
+
+
+    def __hndl_jeq( self, a, b ):
+        if self.__fl == FLE:
+            self.__pc = self.__reg[ a ]
+
+        else:
+            self.__inc_pc( 2 )
+
+        self.__fl == FLB
+    # ============>
+
+
+    def __hndl_jne( self, a, b ):
+        if self.__fl in [ FLB, FLG, FLL ]:
+            self.__pc = self.__reg[ a ]
+
+        else:
+            self.__inc_pc( 2 )
+
+        self.__fl == FLB
+    # ============>
+
+
+    def __hndl_jlt( self, a, b ):
+        if self.__fl == FLL:
+            self.__pc = self.__reg[ a ]
+
+        else:
+            self.__inc_pc( 2 )
+        
+        self.__fl == FLB
     # endregion
 
 
@@ -300,6 +356,7 @@ class CPU:
         second = self.__reg[ b ]
 
         if first == second:
+            #print( 'equal' )
             self.__set_flag( FLE )
 
         elif first > second:
@@ -309,7 +366,10 @@ class CPU:
             self.__set_flag( FLL )
 
         else:
+            #print( 'not equal' )
             self.__set_flag( FLB )
+        
+        self.__inc_pc( 3 ) # +1 base increment plus 1 for each used operand
     # ============>
 
 
