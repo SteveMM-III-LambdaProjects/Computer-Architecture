@@ -44,6 +44,7 @@ OPCODES = {
     "NOT":  {"type": 1, "code": "01101001"},
     "OR":   {"type": 2, "code": "10101010"},
     "POP":  {"type": 1, "code": "01000110"},
+    "PRL":  {"type": 1, "code": "01110011"},
     "PRA":  {"type": 1, "code": "01001000"},
     "PRN":  {"type": 1, "code": "01000111"},
     "PUSH": {"type": 1, "code": "01000101"},
